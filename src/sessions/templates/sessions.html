@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sessions</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/js/sessions.js"></script>
+</head>
+<body>
+  <h1>All Sessions</h1>
+  <div id="session-cards">
+    {% for project in projects %}
+      <div class="card">
+        <h2>{{ project.case_number }}</h2>
+        <p>Created: {{ project.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+        <p>Status: {{ project.status }}</p>
+        <div class="actions">
+          <a href="/processing/{{ project.id }}">Processing</a>
+          <a href="/results/{{ project.id }}">Results</a>
+          <a href="/sessions/{{ project.id }}/csv">Export CSV</a>
+          <form action="/sessions/{{ project.id }}/delete" method="post" onsubmit="return confirm('Delete this session? This cannot be undone.');">
+            <button type="submit">Delete</button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Processing – Case {{ project.case_number }}</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/js/processing.js"></script>
+</head>
+<body>
+  <h1>Processing Dashboard</h1>
+  <p><strong>Case:</strong> {{ project.case_number }}</p>
+  <p><strong>Email:</strong> {{ project.email or '(none)' }}</p>
+
+  <h2>Files to Process</h2>
+  <ul>
+    {% for file in files %}
+      <li>{{ file.filename }}</li>
+    {% endfor %}
+  </ul>
+
+  <h2>Select AI Models</h2>
+  <form id="plugins-form">
+    {% for plugin in plugins %}
+      <label>
+        <input type="checkbox" name="plugins" value="{{ plugin }}" checked>
+        {{ plugin.replace('_',' ').title() }}
+      </label><br>
+    {% endfor %}
+    <button id="start-btn" type="button">Start Analysis</button>
+    <button id="cancel-btn" type="button">Cancel Project</button>
+  </form>
+
+  <h2>Live Logs</h2>
+  <div id="log" style="border:1px solid #ccc; height:300px; overflow-y:auto; padding:8px;"></div>
+</body>
+</html>

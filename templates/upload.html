@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Start a New Analysis</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <h1>Start a New Analysis</h1>
+  <form action="{{ url_for('main.upload') }}" method="post" enctype="multipart/form-data">
+    <label>
+      Case Number<br>
+      <input type="text" name="case_number" required>
+    </label><br><br>
+    <label>
+      Notification Email (optional)<br>
+      <input type="email" name="email">
+    </label><br><br>
+    <label>
+      Select Files<br>
+      <input type="file" name="files" multiple required>
+    </label><br><br>
+    <button type="submit">Continue to Processing</button>
+    <button type="reset">Clear</button>
+  </form>
+</body>
+</html>

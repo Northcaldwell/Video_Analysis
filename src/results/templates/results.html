@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Results – Case {{ project.case_number }}</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/js/results.js"></script>
+</head>
+<body>
+  <h1>Results for Case {{ project.case_number }}</h1>
+  <div>
+    <button onclick="location.href='/results/{{ project.id }}/export_pdf'">Export PDF</button>
+    <button onclick="location.href='/results/{{ project.id }}/download_zip'">Download ZIP</button>
+  </div>
+  <label><input type="checkbox" id="filter-detections"> Show only files with detections</label>
+  <div id="cards">
+    {% for item in file_data %}
+    <div class="card" data-has-detections="{{ item.detections|length > 0 }}">
+      <h2>{{ item.file.filename }}</h2>
+      <p>Detections: {{ item.detections|length }}</p>
+      <div class="thumbnails">
+        {% for det in item.detections %}
+          <img src="/static/thumbnails/{{ item.file.id }}/frame_{{ det.frame }}.jpg" alt="Frame {{ det.frame }}">
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</body>
+</html>
