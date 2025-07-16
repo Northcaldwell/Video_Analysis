@@ -1,9 +1,12 @@
 # src/processing/routes.py
-from flask import Blueprint, render_template, request, redirect, url_for, current_app, Response
+
+from flask import (
+    Blueprint, render_template, request,
+    redirect, url_for, current_app, Response, flash
+)
 from src import db
 from src.models import Project
 from src.tasks import process_project
-import json
 
 bp = Blueprint(
     'processing',
@@ -21,7 +24,7 @@ def dashboard(project_id):
 @bp.route('/<int:project_id>/start', methods=['POST'])
 def start_analysis(project_id):
     selected = request.form.getlist('plugins')
-    # fire-and-forget
+    # fire-and-forget into Celery
     process_project.delay(project_id, selected)
 
     flash("Processing kicked off! Logs will stream below.")
@@ -35,22 +38,24 @@ def events(project_id):
         pubsub = redis_client.pubsub()
         channel = f"processing:{project_id}"
         pubsub.subscribe(channel)
+
         for message in pubsub.listen():
             if message['type'] != 'message':
                 continue
             data = message['data']
-            # message data is already a JSON string or raw bytes
-            if isinstance(data, bytes):
-                text = data.decode()
-            else:
-                text = str(data)
+            # decode bytes if needed
+            text = data.decode() if isinstance(data, bytes) else str(data)
             yield f"data: {text}\n\n"
+
     return Response(generate(), mimetype='text/event-stream')
 
 @bp.route('/<int:project_id>/cancel', methods=['DELETE'])
 def cancel_project(project_id):
     task_id = request.args.get('task_id')
     from celery.result import AsyncResult
-    result = AsyncResult(task_id, app=current_app.extensions['celery'])
+
+    celery_app = current_app.extensions['celery']
+    result = AsyncResult(task_id, app=celery_app)
     result.revoke(terminate=True)
+
     return {'status': 'cancelled'}, 200
