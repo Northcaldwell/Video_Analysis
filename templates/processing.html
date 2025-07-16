@@ -9,7 +9,7 @@
   <h1>Project: {{ project.case_number }}</h1>
   <p>Status: {{ project.status }}</p>
 
-  <form action="{{ url_for('processing.start', project_id=project.id) }}" method="post">
+  <form action="{{ url_for('processing.start_analysis', project_id=project.id) }}" method="post">
     <h2>Select Analyses</h2>
     {% for plugin in plugins %}
       <label>
