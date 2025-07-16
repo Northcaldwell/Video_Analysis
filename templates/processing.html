@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Processing Project {{ project.case_number }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <h1>Project: {{ project.case_number }}</h1>
+  <p>Status: {{ project.status }}</p>
+
+  <form action="{{ url_for('processing.start', project_id=project.id) }}" method="post">
+    <h2>Select Analyses</h2>
+    {% for plugin in plugins %}
+      <label>
+        <input
+          type="checkbox"
+          name="plugins"
+          value="{{ plugin }}"
+          {% if plugin in project.requested_plugins %}checked{% endif %}
+        >
+        {{ plugin.replace('_', ' ').title() }}
+      </label><br>
+    {% endfor %}
+    <button type="submit">Start Processing</button>
+  </form>
+
+  <h2>Live Logs</h2>
+  <pre id="log-output"></pre>
+  <script src="{{ url_for('static', filename='js/processing.js') }}"></script>
+</body>
+</html>
