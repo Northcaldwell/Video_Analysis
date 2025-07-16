@@ -1,36 +1,74 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Processing – Case {{ project.case_number }}</title>
-  <link rel="stylesheet" href="/static/styles.css">
-  <script src="/static/js/processing.js"></script>
-</head>
-<body>
-  <h1>Processing Dashboard</h1>
-  <p><strong>Case:</strong> {{ project.case_number }}</p>
-  <p><strong>Email:</strong> {{ project.email or '(none)' }}</p>
+{% extends "base.html" %}
 
-  <h2>Files to Process</h2>
-  <ul>
-    {% for file in files %}
-      <li>{{ file.filename }}</li>
-    {% endfor %}
-  </ul>
+{% block title %}Processing – Case {{ project.case_number }}{% endblock %}
 
-  <h2>Select AI Models</h2>
-  <form id="plugins-form">
-    {% for plugin in plugins %}
-      <label>
-        <input type="checkbox" name="plugins" value="{{ plugin }}" checked>
-        {{ plugin.replace('_',' ').title() }}
-      </label><br>
-    {% endfor %}
-    <button id="start-btn" type="button">Start Analysis</button>
-    <button id="cancel-btn" type="button">Cancel Project</button>
+{% block content %}
+  <h1>Processing Case {{ project.case_number }}</h1>
+  <form id="plugin-form">
+    <fieldset>
+      <legend>Select Analyses</legend>
+      {% for plugin in plugins %}
+        <label>
+          <input type="checkbox" name="plugins" value="{{ plugin }}">
+          {{ plugin }}
+        </label><br>
+      {% endfor %}
+    </fieldset>
+    <button type="submit">Start Analysis</button>
+    <button type="button" id="cancel-btn">Cancel</button>
   </form>
 
-  <h2>Live Logs</h2>
-  <div id="log" style="border:1px solid #ccc; height:300px; overflow-y:auto; padding:8px;"></div>
-</body>
-</html>
+  <div id="progress">
+    <div id="status">Waiting to start…</div>
+    <progress id="bar" value="0" max="100"></progress>
+  </div>
+
+  <pre id="log-window" style="height:300px; overflow:auto; border:1px solid #ccc; padding:10px;"></pre>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Kick off analysis when form submits
+document.getElementById('plugin-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const form = e.target;
+  const data = new FormData(form);
+  fetch('{{ url_for("processing.start_analysis", project_id=project.id) }}', {
+    method: 'POST', body: data
+  })
+  .then(res => res.json())
+  .then(json => {
+    if (json.task_id) startStream(json.task_id);
+  });
+});
+
+// Cancel button
+document.getElementById('cancel-btn').addEventListener('click', () => {
+  fetch('{{ url_for("processing.cancel_project", project_id=project.id) }}?task_id=' + currentTask, {
+    method: 'DELETE'
+  });
+});
+
+// SSE listener
+let currentTask = null;
+function startStream(taskId) {
+  currentTask = taskId;
+  const es = new EventSource('{{ url_for("processing.events", project_id=project.id) }}');
+  es.onmessage = ev => {
+    const msg = ev.data;
+    const log = document.getElementById('log-window');
+    log.textContent += msg + '\\n';
+    // parse progress: assume “progress:XX” messages
+    if (msg.startsWith('progress:')) {
+      const pct = msg.split(':')[1];
+      document.getElementById('bar').value = pct;
+      document.getElementById('status').textContent = `Progress: ${pct}%`;
+    }
+    if (msg.trim().toLowerCase() === 'complete') {
+      es.close();
+      document.getElementById('status').textContent = 'Done!';
+    }
+  };
+}
+</script>
+{% endblock %}
