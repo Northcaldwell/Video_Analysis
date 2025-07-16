@@ -25,8 +25,13 @@
     <button type="submit">Start Processing</button>
   </form>
 
-  <h2>Live Logs</h2>
-  <pre id="log-output"></pre>
-  <script src="{{ url_for('static', filename='js/processing.js') }}"></script>
+<h2>Live Logs</h2>
+<pre id="log-output"></pre>
+
+<script>
+  // make projectId available to your JS
+  const projectId = {{ project.id }};
+</script>
+<script src="{{ url_for('static', filename='js/processing.js') }}"></script>
 </body>
 </html>

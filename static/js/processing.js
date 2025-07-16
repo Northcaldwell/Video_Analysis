@@ -38,3 +38,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+// when the page loads, open an EventSource to the events endpoint
+window.addEventListener('DOMContentLoaded', () => {
+  const output = document.getElementById('log-output');
+  const es = new EventSource(`/processing/${projectId}/events`);
+  es.onmessage = e => {
+    output.innerText += e.data + '\n';
+    output.scrollTop = output.scrollHeight;
+  };
+  es.onerror = () => {
+    es.close();
+    output.innerText += '\n⏹️ Stream closed.';
+  };
+});

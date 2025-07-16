@@ -20,11 +20,12 @@ def dashboard(project_id):
 
 @bp.route('/<int:project_id>/start', methods=['POST'])
 def start_analysis(project_id):
-    # Get selected plugins
     selected = request.form.getlist('plugins')
-    # Enqueue Celery task
-    task = process_project.apply_async(args=[project_id, selected])
-    return {'task_id': task.id}, 202
+    # fire-and-forget
+    process_project.delay(project_id, selected)
+
+    flash("Processing kicked off! Logs will stream below.")
+    return redirect(url_for('processing.dashboard', project_id=project_id))
 
 @bp.route('/<int:project_id>/events', methods=['GET'])
 def events(project_id):
